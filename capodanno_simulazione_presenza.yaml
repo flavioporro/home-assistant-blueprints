@@ -1,4 +1,4 @@
-﻿blueprint:
+blueprint:
   name: Capodanno – Simulazione Presenza Anti Ladri
   description: >
     Simula la presenza in casa la notte di Capodanno con accensioni
@@ -59,7 +59,7 @@ max_exceeded: silent
 
 trigger:
   - platform: time_pattern
-    minutes: "/15"  # ogni 15 minuti
+    minutes: "/15"
 
 condition:
   - condition: template
@@ -78,25 +78,21 @@ action:
             value_template: "{{ range(0,100)|random < 70 }}"
         sequence:
           - service: light.turn_on
-            target:
-              entity_id: !input luci_simulazione
+            target: !input luci_simulazione
             data:
               brightness_pct: "{{ range(40,90)|random }}"
           - delay:
               minutes: "{{ range(10,30)|random }}"
           - service: light.turn_off
-            target:
-              entity_id: !input luci_simulazione
+            target: !input luci_simulazione
 
   - service: media_player.volume_set
-    target:
-      entity_id: !input media_player_principale
+    target: !input media_player_principale
     data:
       volume_level: 0.25
 
   - service: media_player.play_media
-    target:
-      entity_id: !input media_player_principale
+    target: !input media_player_principale
     data:
       media_content_id: media-source://media_source/local/tv_noise.mp3
       media_content_type: audio/mpeg
@@ -113,15 +109,13 @@ action:
             value_template: "{{ now().minute == 0 }}"
         sequence:
           - service: media_player.play_media
-            target:
-              entity_id: !input media_player_bagno
+            target: !input media_player_bagno
             data:
               media_content_id: !input file_scoreggia
               media_content_type: audio/mpeg
           - delay: "00:00:05"
           - service: media_player.play_media
-            target:
-              entity_id: !input media_player_bagno
+            target: !input media_player_bagno
             data:
               media_content_id: !input file_wc
               media_content_type: audio/mpeg
