@@ -1,5 +1,5 @@
 blueprint:
-  name: Capodanno – Simulazione Presenza Anti Ladri
+  name: Capodanno - Simulazione Presenza Anti Ladri
   description: >
     Simula la presenza in casa la notte di Capodanno con accensioni
     casuali delle luci, audio realistico e una gag opzionale in bagno.
@@ -86,21 +86,22 @@ action:
             target: !input luci_simulazione
 
   - service: media_player.volume_set
-    entity_id: !input media_player_principale
+    target:
+      entity_id: !input media_player_principale
     data:
       volume_level: 0.25
 
   - service: media_player.play_media
-    entity_id: !input media_player_principale
+    target:
+      entity_id: !input media_player_principale
     data:
       media_content_id: media-source://media_source/local/tv_noise.mp3
       media_content_type: audio/mpeg
 
   - choose:
       - conditions:
-          - condition: state
-            entity_id: !input abilita_gag
-            state: "true"
+          - condition: template
+            value_template: "{{ is_state('input_boolean.abilita_gag', 'on') if abilita_gag is not defined else abilita_gag }}"
           - condition: time
             after: "22:00:00"
             before: "05:00:00"
@@ -108,13 +109,15 @@ action:
             value_template: "{{ now().minute == 0 }}"
         sequence:
           - service: media_player.play_media
-            entity_id: !input media_player_bagno
+            target:
+              entity_id: !input media_player_bagno
             data:
               media_content_id: !input file_scoreggia
               media_content_type: audio/mpeg
           - delay: "00:00:05"
           - service: media_player.play_media
-            entity_id: !input media_player_bagno
+            target:
+              entity_id: !input media_player_bagno
             data:
               media_content_id: !input file_wc
               media_content_type: audio/mpeg
