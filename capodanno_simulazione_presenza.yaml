@@ -3,7 +3,7 @@ blueprint:
   description: >
     Simula la presenza in casa la notte di Capodanno con accensioni
     casuali delle luci, audio realistico e una gag opzionale in bagno.
-    Pensato per essere semplice e configurabile da interfaccia.
+    Tutti i dispositivi e file audio sono configurabili da interfaccia.
   domain: automation
   input:
     home_zone:
@@ -40,6 +40,22 @@ blueprint:
       selector:
         boolean:
 
+    file_scoreggia:
+      name: File audio gag (scoreggia)
+      description: File audio da riprodurre nel bagno
+      selector:
+        media:
+          domain: media_source
+          media_type: music
+
+    file_wc:
+      name: File audio gag (scarico WC)
+      description: File audio da riprodurre nel bagno
+      selector:
+        media:
+          domain: media_source
+          media_type: music
+
 mode: restart
 max_exceeded: silent
 
@@ -64,21 +80,25 @@ action:
             value_template: "{{ range(0,100)|random < 70 }}"
         sequence:
           - service: light.turn_on
-            target: !input luci_simulazione
+            target:
+              entity_id: !input luci_simulazione
             data:
               brightness_pct: "{{ range(40,90)|random }}"
           - delay:
               minutes: "{{ range(10,30)|random }}"
           - service: light.turn_off
-            target: !input luci_simulazione
+            target:
+              entity_id: !input luci_simulazione
 
   - service: media_player.volume_set
-    target: !input media_player_principale
+    target:
+      entity_id: !input media_player_principale
     data:
       volume_level: 0.25
 
   - service: media_player.play_media
-    target: !input media_player_principale
+    target:
+      entity_id: !input media_player_principale
     data:
       media_content_id: media-source://media_source/local/tv_noise.mp3
       media_content_type: audio/mpeg
@@ -95,13 +115,15 @@ action:
             value_template: "{{ now().minute == 0 }}"
         sequence:
           - service: media_player.play_media
-            target: !input media_player_bagno
+            target:
+              entity_id: !input media_player_bagno
             data:
-              media_content_id: media-source://media_source/local/scoreggia.mp3
+              media_content_id: !input file_scoreggia
               media_content_type: audio/mpeg
           - delay: "00:00:05"
           - service: media_player.play_media
-            target: !input media_player_bagno
+            target:
+              entity_id: !input media_player_bagno
             data:
-              media_content_id: media-source://media_source/local/scarico_wc.mp3
+              media_content_id: !input file_wc
               media_content_type: audio/mpeg
