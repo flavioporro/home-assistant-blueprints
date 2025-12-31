@@ -3,7 +3,6 @@ blueprint:
   description: >
     Simula la presenza in casa la notte di Capodanno con accensioni
     casuali delle luci, audio realistico e una gag opzionale in bagno.
-    Tutti i dispositivi e file audio sono configurabili da interfaccia.
   domain: automation
   input:
     home_zone:
@@ -42,14 +41,14 @@ blueprint:
 
     file_scoreggia:
       name: Percorso file gag (scoreggia)
-      description: Inserisci il percorso del file audio, es. media-source://media_source/local/scoreggia.mp3
+      description: Percorso file audio per scoreggia (es. media-source://media_source/local/scoreggia.mp3)
       default: media-source://media_source/local/scoreggia.mp3
       selector:
         text:
 
     file_wc:
       name: Percorso file gag (scarico WC)
-      description: Inserisci il percorso del file audio, es. media-source://media_source/local/scarico_wc.mp3
+      description: Percorso file audio per scarico WC (es. media-source://media_source/local/scarico_wc.mp3)
       default: media-source://media_source/local/scarico_wc.mp3
       selector:
         text:
