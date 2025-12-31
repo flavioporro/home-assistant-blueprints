@@ -1,55 +1,51 @@
-﻿blueprint:
+blueprint:
   name: Capodanno – Simulazione Presenza Anti Ladri
   description: >
     Simula la presenza in casa la notte di Capodanno con accensioni
     casuali delle luci, audio realistico e una gag opzionale in bagno.
     Pensato per essere semplice e configurabile da interfaccia.
   domain: automation
-  author: I Pensieri dell’Architetto
-  source_url: https://github.com/TUO_USERNAME/home-assistant-blueprints
-
-input:
-  home_zone:
-    name: Zona Casa
-    description: Zona che rappresenta la presenza in casa
-    selector:
-      entity:
-        domain: zone
-
-  luci_simulazione:
-    name: Luci per simulazione presenza
-    description: Luci utilizzate per simulare la presenza
-    selector:
-      target:
+  input:
+    home_zone:
+      name: Zona Casa
+      description: Zona che rappresenta la presenza in casa
+      selector:
         entity:
-          domain: light
+          domain: zone
 
-  media_player_principale:
-    name: Media Player principale (TV / voci)
-    selector:
-      entity:
-        domain: media_player
+    luci_simulazione:
+      name: Luci per simulazione presenza
+      description: Luci utilizzate per simulare la presenza
+      selector:
+        target:
+          entity:
+            domain: light
 
-  media_player_bagno:
-    name: Media Player bagno
-    selector:
-      entity:
-        domain: media_player
+    media_player_principale:
+      name: Media Player principale (TV / voci)
+      selector:
+        entity:
+          domain: media_player
 
-  abilita_gag:
-    name: Abilita gag umana in bagno
-    description: Riproduce suoni ogni ora per simulare presenza umana
-    default: true
-    selector:
-      boolean:
+    media_player_bagno:
+      name: Media Player bagno
+      selector:
+        entity:
+          domain: media_player
+
+    abilita_gag:
+      name: Abilita gag umana in bagno
+      description: Riproduce suoni ogni ora per simulare presenza umana
+      default: true
+      selector:
+        boolean:
 
 mode: restart
 max_exceeded: silent
 
 trigger:
-  - platform: state
-    entity_id: !input home_zone
-    to: "0"
+  - platform: time_pattern
+    minutes: "/15"  # ogni 15 minuti
 
 condition:
   - condition: template
@@ -57,68 +53,55 @@ condition:
   - condition: time
     after: "18:00:00"
     before: "05:00:00"
+  - condition: state
+    entity_id: !input home_zone
+    state: "0"
 
 action:
-  - repeat:
-      while:
-        - condition: time
-          after: "18:00:00"
-          before: "05:00:00"
-      sequence:
+  - choose:
+      - conditions:
+          - condition: template
+            value_template: "{{ range(0,100)|random < 70 }}"
+        sequence:
+          - service: light.turn_on
+            target: !input luci_simulazione
+            data:
+              brightness_pct: "{{ range(40,90)|random }}"
+          - delay:
+              minutes: "{{ range(10,30)|random }}"
+          - service: light.turn_off
+            target: !input luci_simulazione
 
-        # 🔆 Accensione casuale luci
-        - service: light.turn_on
-          target: !input luci_simulazione
-          data:
-            brightness_pct: "{{ range(40, 90) | random }}"
+  - service: media_player.volume_set
+    target: !input media_player_principale
+    data:
+      volume_level: 0.25
 
-        - delay:
-            minutes: "{{ range(20, 60) | random }}"
+  - service: media_player.play_media
+    target: !input media_player_principale
+    data:
+      media_content_id: media-source://media_source/local/tv_noise.mp3
+      media_content_type: audio/mpeg
 
-        - service: light.turn_off
-          target: !input luci_simulazione
-
-        # 📺 Audio realistico
-        - service: media_player.volume_set
-          target:
-            entity_id: !input media_player_principale
-          data:
-            volume_level: 0.25
-
-        - service: media_player.play_media
-          target:
-            entity_id: !input media_player_principale
-          data:
-            media_content_id: media-source://media_source/local/tv_noise.mp3
-            media_content_type: audio/mpeg
-
-        # 🚽 Gag umana opzionale
-        - choose:
-            - conditions:
-                - condition: state
-                  entity_id: !input abilita_gag
-                  state: "true"
-                - condition: template
-                  value_template: "{{ now().minute == 0 }}"
-                - condition: time
-                  after: "22:00:00"
-                  before: "05:00:00"
-              sequence:
-                - service: media_player.play_media
-                  target:
-                    entity_id: !input media_player_bagno
-                  data:
-                    media_content_id: media-source://media_source/local/scoreggia.mp3
-                    media_content_type: audio/mpeg
-
-                - delay: "00:00:05"
-
-                - service: media_player.play_media
-                  target:
-                    entity_id: !input media_player_bagno
-                  data:
-                    media_content_id: media-source://media_source/local/scarico_wc.mp3
-                    media_content_type: audio/mpeg
-
-        - delay:
-            minutes: "{{ range(10, 30) | random }}"
+  - choose:
+      - conditions:
+          - condition: state
+            entity_id: !input abilita_gag
+            state: "true"
+          - condition: time
+            after: "22:00:00"
+            before: "05:00:00"
+          - condition: template
+            value_template: "{{ now().minute == 0 }}"
+        sequence:
+          - service: media_player.play_media
+            target: !input media_player_bagno
+            data:
+              media_content_id: media-source://media_source/local/scoreggia.mp3
+              media_content_type: audio/mpeg
+          - delay: "00:00:05"
+          - service: media_player.play_media
+            target: !input media_player_bagno
+            data:
+              media_content_id: media-source://media_source/local/scarico_wc.mp3
+              media_content_type: audio/mpeg
