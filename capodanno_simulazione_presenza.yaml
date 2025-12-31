@@ -86,12 +86,12 @@ action:
             target: !input luci_simulazione
 
   - service: media_player.volume_set
-    target: !input media_player_principale
+    entity_id: !input media_player_principale
     data:
       volume_level: 0.25
 
   - service: media_player.play_media
-    target: !input media_player_principale
+    entity_id: !input media_player_principale
     data:
       media_content_id: media-source://media_source/local/tv_noise.mp3
       media_content_type: audio/mpeg
@@ -108,13 +108,13 @@ action:
             value_template: "{{ now().minute == 0 }}"
         sequence:
           - service: media_player.play_media
-            target: !input media_player_bagno
+            entity_id: !input media_player_bagno
             data:
               media_content_id: !input file_scoreggia
               media_content_type: audio/mpeg
           - delay: "00:00:05"
           - service: media_player.play_media
-            target: !input media_player_bagno
+            entity_id: !input media_player_bagno
             data:
               media_content_id: !input file_wc
               media_content_type: audio/mpeg
